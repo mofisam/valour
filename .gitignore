@@ -1,0 +1,12 @@
+.env
+/vendor/
+/node_modules/
+/storage/logs/*
+/storage/cache/*
+/storage/invoices/*
+/public/assets/uploads/*
+!/public/assets/uploads/.gitkeep
+!/storage/logs/.gitkeep
+!/storage/cache/.gitkeep
+!/storage/invoices/.gitkeep
+.DS_Store

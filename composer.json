@@ -1,0 +1,14 @@
+{
+    "name": "valour-empire/laundry-app",
+    "description": "Valour Empire Laundry Services - business management app (plain PHP MVC)",
+    "type": "project",
+    "require": {
+        "php": ">=8.1",
+        "ext-mysqli": "*",
+        "ext-mbstring": "*"
+    },
+    "suggest": {
+        "dompdf/dompdf": "Enables PDF invoice download (composer require dompdf/dompdf)"
+    },
+    "config": { "sort-packages": true }
+}

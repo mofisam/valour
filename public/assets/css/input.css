@@ -1,0 +1,80 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Theme tokens as "R G B" so Tailwind opacity modifiers work (bg-surface/90) */
+  :root {
+    --canvas: 244 245 242;  --canvas2: 232 234 228;  --surface: 255 255 255;  --line: 227 234 240;
+    --fg: 17 41 59;  --fg2: 27 58 82;  --muted: 74 98 120;
+    --primary: 17 41 59;  --primary-hover: 27 58 82;  --on-primary: 255 255 255;
+    --side: 17 41 59;  --link: 31 111 120;
+  }
+  .dark {
+    color-scheme: dark;
+    --canvas: 11 22 31;  --canvas2: 24 40 54;  --surface: 18 33 46;  --line: 36 55 71;
+    --fg: 230 237 242;  --fg2: 197 210 220;  --muted: 142 163 179;
+    --primary: 230 237 242;  --primary-hover: 255 255 255;  --on-primary: 11 22 31;
+    --side: 8 17 24;  --link: 92 192 203;
+  }
+  html { font-family: 'Public Sans', system-ui, sans-serif; }
+  body { @apply bg-canvas text-fg antialiased; }
+  h1, h2, h3 { font-family: 'Bricolage Grotesque', system-ui, sans-serif; @apply tracking-tight; }
+  :focus-visible { @apply outline-2 outline-offset-2 outline-brass; outline-style: solid; }
+  .num { font-variant-numeric: tabular-nums; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+}
+
+@layer components {
+  .card { @apply bg-surface rounded-lg border border-line; }
+  .card-pad { @apply p-5; }
+
+  .btn { @apply inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-50 cursor-pointer; }
+  .btn-primary { @apply btn bg-primary text-on-primary hover:bg-primary-hover; }
+  .btn-accent  { @apply btn bg-sea text-white hover:bg-sea-600; }
+  .btn-ghost   { @apply btn border border-line bg-surface text-fg hover:bg-canvas2; }
+  .btn-danger  { @apply btn border border-red-300 bg-surface text-red-700 hover:bg-red-50 dark:border-red-500/40 dark:text-red-300 dark:hover:bg-red-500/10; }
+  .btn-sm      { @apply px-3 py-1.5 text-xs; }
+
+  .label { @apply block text-sm font-medium text-fg2 mb-1; }
+  .input { @apply w-full rounded-md border border-line bg-surface px-3 py-2 text-sm text-fg placeholder:text-muted/60 focus:border-sea focus:outline-none focus:ring-2 focus:ring-sea/30; }
+  .input-error { @apply border-red-400; }
+  .field-error { @apply mt-1 text-xs text-red-700 dark:text-red-300; }
+  .hint { @apply mt-1 text-xs text-muted; }
+
+  .table-wrap { @apply overflow-x-auto; }
+  .table { @apply w-full text-sm text-left; }
+  .table th { @apply px-4 py-3 font-semibold text-fg2 bg-canvas border-b border-line whitespace-nowrap; }
+  .table td { @apply px-4 py-3 border-b border-line/70 align-middle; }
+  .table tbody tr:hover { @apply bg-canvas/70; }
+
+  .badge { @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold; }
+  .badge-pending, .badge-unpaid  { @apply bg-amber-100 text-amber-900 dark:bg-amber-400/15 dark:text-amber-200; }
+  .badge-washing, .badge-partial { @apply bg-sky-100 text-sky-900 dark:bg-sky-400/15 dark:text-sky-200; }
+  .badge-in_use                  { @apply bg-fuchsia-100 text-fuchsia-900 dark:bg-fuchsia-400/15 dark:text-fuchsia-200; }
+  .badge-ironing                 { @apply bg-violet-100 text-violet-900 dark:bg-violet-400/15 dark:text-violet-200; }
+  .badge-dry_cleaning            { @apply bg-indigo-100 text-indigo-900 dark:bg-indigo-400/15 dark:text-indigo-200; }
+  .badge-ready                   { @apply bg-sea-100 text-sea-600 dark:bg-teal-400/15 dark:text-teal-200; }
+  .badge-delivered, .badge-paid  { @apply bg-emerald-100 text-emerald-800 dark:bg-emerald-400/15 dark:text-emerald-200; }
+  .badge-cancelled               { @apply bg-red-100 text-red-800 dark:bg-red-400/15 dark:text-red-200; }
+  .badge-draft                   { @apply bg-canvas2 text-fg2; }
+
+  .nav-link { @apply flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-white/75 hover:bg-white/10 hover:text-white border-l-2 border-transparent; }
+  .nav-link-active { @apply bg-white/10 text-white border-brass; }
+
+  .alert { @apply rounded-md border px-4 py-3 text-sm; }
+  .alert-success { @apply alert border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200; }
+  .alert-error   { @apply alert border-red-200 bg-red-50 text-red-900 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200; }
+  .alert-info    { @apply alert border-sky-200 bg-sky-50 text-sky-900 dark:border-sky-500/30 dark:bg-sky-500/10 dark:text-sky-200; }
+  .alert-warning { @apply alert border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200; }
+
+  .panel-title { @apply font-display text-lg font-bold; }
+  .tab { @apply inline-flex items-center gap-2 whitespace-nowrap rounded-full border border-line bg-surface px-3.5 py-1.5 text-sm font-medium text-fg2 hover:bg-canvas2; }
+  .tab-active { @apply border-primary bg-primary text-on-primary hover:bg-primary-hover; }
+}
+
+@media print {
+  aside, header.sticky, footer, nav[aria-label="Job filters"], #reminder-toasts { display: none !important; }
+  body { background: #fff !important; color: #000 !important; }
+  .card { border-color: #ccc !important; }
+}

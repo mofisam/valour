@@ -1,0 +1,2 @@
+-- The initial migration is database/schema.sql.
+-- Add future changes as 002_*.sql, 003_*.sql and run them in order.

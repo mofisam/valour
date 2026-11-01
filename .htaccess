@@ -1,0 +1,5 @@
+# Only needed if you cannot point the web root at /public (e.g. shared hosting).
+# Best practice is still to point the document root at /public.
+RewriteEngine On
+RewriteRule ^$ public/ [L]
+RewriteRule (.*) public/$1 [L]

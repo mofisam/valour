@@ -1,0 +1,11 @@
+{
+  "name": "valour-empire",
+  "private": true,
+  "scripts": {
+    "dev": "tailwindcss -i ./public/assets/css/input.css -o ./public/assets/css/app.css --watch",
+    "build": "tailwindcss -i ./public/assets/css/input.css -o ./public/assets/css/app.css --minify"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.17"
+  }
+}
