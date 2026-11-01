@@ -8,7 +8,7 @@ $cards = [
     ['Total revenue',   money($s['revenue']),             'Billed on those jobs',                              'trending-up',  'sea'],
     ['Average revenue', money($s['avg_revenue']),         'Per job',                                           'bar-chart',    'brass'],
     ['Receivables',     money($s['receivables']),         'Billed but not yet paid',                           'file-text',    'red'],
-    ['Total expenses',  money($s['expenses']),            'All expense categories',                            'credit-card',  'red'],
+    ['Total expenses',  money($s['expenses']),            'Cash ' . money($s['expenses_cash']) . ' · Bank ' . money($s['expenses_bank']),                            'credit-card',  'red'],
     ['Bank / Cash',     money($s['cash_total']),          'Cash ' . money($s['cash_cash']) . ' · Bank ' . money($s['cash_bank']), 'wallet', 'brass'],
     ['Gross profit',    money($s['gross_profit']),        'Revenue less direct costs (' . money($s['direct_costs']) . ')',        'percent', 'green'],
 ];

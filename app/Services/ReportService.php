@@ -90,9 +90,7 @@ class ReportService extends Model
             'avg_job' => (float) $m['avg_job'], 'jobs_month' => (int) $m['jobs'],
             'new_customers' => (int) self::scalar('SELECT COUNT(*) FROM customers WHERE deleted_at IS NULL AND created_at >= ?', [$monthStart]),
             'months' => array_values($months),
-            'status_counts' => array_column(self::all(
-                'SELECT status, COUNT(*) c FROM jobs WHERE deleted_at IS NULL AND is_draft = 0 AND job_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) GROUP BY status'
-            ), 'c', 'status'),
+            'status_counts' => self::openStatusCounts($monthStart),
             'top_services' => self::all(
                 "SELECT COALESCE(s.name,'Unspecified') AS name, COUNT(*) AS jobs, SUM(j.total) AS billed
                  FROM jobs j LEFT JOIN services s ON s.id = j.service_id
@@ -101,6 +99,27 @@ class ReportService extends Model
             ),
             'activity' => self::all('SELECT l.*, u.name AS user_name FROM activity_logs l LEFT JOIN users u ON u.id = l.user_id ORDER BY l.id DESC LIMIT 6'),
         ];
+    }
+
+    /**
+     * Jobs of the current month (from day 1) that are still to be finished, per status, in process order.
+     * Delivered and cancelled jobs are left out: this answers "what should we focus on?".
+     */
+    public static function openStatusCounts(string $monthStart): array
+    {
+        $rows = array_column(self::all(
+            "SELECT j.status, COUNT(*) c FROM jobs j
+             WHERE j.deleted_at IS NULL AND j.is_draft = 0 AND j.job_date >= ? AND j.status NOT IN ('delivered','cancelled')
+             GROUP BY j.status",
+            [$monthStart]
+        ), 'c', 'status');
+        $out = [];
+        foreach (JOB_FLOW as $st) {
+            if ($st !== 'delivered' && isset($rows[$st])) {
+                $out[$st] = (int) $rows[$st];
+            }
+        }
+        return $out;
     }
 
     /** Jobs that need someone's attention today. */
@@ -137,8 +156,10 @@ class ReportService extends Model
             [$from, $to]
         );
         $exp = self::first(
-            'SELECT COALESCE(SUM(e.amount),0) AS total, COALESCE(SUM(CASE WHEN c.is_direct_cost = 1 THEN e.amount ELSE 0 END),0) AS direct
-             FROM expenses e LEFT JOIN expense_categories c ON c.id = e.category_id WHERE e.expense_date BETWEEN ? AND ?',
+            "SELECT COALESCE(SUM(e.amount),0) AS total, COALESCE(SUM(CASE WHEN c.is_direct_cost = 1 THEN e.amount ELSE 0 END),0) AS direct,
+                    COALESCE(SUM(CASE WHEN e.paid_from = 'cash' THEN e.amount ELSE 0 END),0) AS from_cash,
+                    COALESCE(SUM(CASE WHEN e.paid_from = 'bank' THEN e.amount ELSE 0 END),0) AS from_bank
+             FROM expenses e LEFT JOIN expense_categories c ON c.id = e.category_id WHERE e.expense_date BETWEEN ? AND ?",
             [$from, $to]
         );
         $cash = self::first(
@@ -160,6 +181,8 @@ class ReportService extends Model
             'receivables'   => max(0.0, (float) $jobs['receivables']),
             'expenses'      => $expenses,
             'direct_costs'  => $direct,
+            'expenses_cash' => (float) $exp['from_cash'],
+            'expenses_bank' => (float) $exp['from_bank'],
             'operating'     => $expenses - $direct,
             'cash_total'    => (float) $cash['total'],
             'cash_cash'     => (float) $cash['cash'],
@@ -274,7 +297,11 @@ class ReportService extends Model
             }
         }
 
+        $out = self::first("SELECT COALESCE(SUM(CASE WHEN paid_from = 'cash' THEN amount ELSE 0 END),0) AS c, COALESCE(SUM(CASE WHEN paid_from = 'bank' THEN amount ELSE 0 END),0) AS b
+                            FROM expenses WHERE expense_date BETWEEN ? AND ?", [$from, $to]);
+
         return [
+            'spent_cash' => (float) $out['c'], 'spent_bank' => (float) $out['b'],
             'count' => (int) $t['n'], 'total' => (float) $t['total'], 'cash' => (float) $t['cash'],
             'transfer' => (float) $t['transfer'], 'pos' => (float) $t['pos'], 'other' => (float) $t['other'],
             'bank' => (float) $t['total'] - (float) $t['cash'],

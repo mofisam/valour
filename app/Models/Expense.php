@@ -20,6 +20,7 @@ class Expense extends Model
         if (!empty($f['from'])) { $sql .= ' AND e.expense_date >= ?'; $p[] = $f['from']; }
         if (!empty($f['to']))   { $sql .= ' AND e.expense_date <= ?'; $p[] = $f['to']; }
         if (!empty($f['category_id'])) { $sql .= ' AND e.category_id = ?'; $p[] = (int) $f['category_id']; }
+        if (!empty($f['paid_from']) && in_array($f['paid_from'], ['cash', 'bank'], true)) { $sql .= ' AND e.paid_from = ?'; $p[] = $f['paid_from']; }
         return $sql;
     }
 
@@ -47,5 +48,17 @@ class Expense extends Model
             ' ORDER BY e.expense_date DESC, e.id DESC LIMIT ' . (int) $limit . ' OFFSET ' . (int) $offset,
             $p
         );
+    }
+
+    /** Totals split by where the money came out of, for the same filters as the list. */
+    public static function totalsBySource(array $f): array
+    {
+        $f['paid_from'] = '';   // ignore the source filter so both figures always show
+        $p = [];
+        $w = self::where($f, $p);
+        $row = self::first("SELECT COALESCE(SUM(CASE WHEN e.paid_from = 'cash' THEN e.amount ELSE 0 END),0) AS cash,
+                                   COALESCE(SUM(CASE WHEN e.paid_from = 'bank' THEN e.amount ELSE 0 END),0) AS bank
+                            FROM expenses e" . $w, $p);
+        return ['cash' => (float) $row['cash'], 'bank' => (float) $row['bank']];
     }
 }

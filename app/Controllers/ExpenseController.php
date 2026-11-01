@@ -12,6 +12,7 @@ class ExpenseController extends Controller
         'expense_date' => 'required|date',
         'amount'       => 'required|numeric|min:0.01',
         'category_id'  => 'integer',
+        'paid_from'    => 'required|in:cash,bank',
     ];
 
     public function index(): void
@@ -20,6 +21,7 @@ class ExpenseController extends Controller
             'from'        => $this->request->input('from', date('Y-m-01')),
             'to'          => $this->request->input('to', date('Y-m-d')),
             'category_id' => $this->request->input('category_id', ''),
+            'paid_from'   => in_array($this->request->input('paid_from', ''), ['cash', 'bank'], true) ? $this->request->input('paid_from') : '',
         ];
         $pager = new Paginator(Expense::count($filters), (int) $this->request->input('page', 1), config('app.per_page'));
 
@@ -29,6 +31,7 @@ class ExpenseController extends Controller
             'pager'      => $pager,
             'filters'    => $filters,
             'total'      => Expense::totalFor($filters),
+            'bySource'   => Expense::totalsBySource($filters),
             'categories' => Expense::categories(),
         ]);
     }
@@ -76,6 +79,7 @@ class ExpenseController extends Controller
             'category_id'  => $r->input('category_id') ?: null,
             'description'  => $r->input('description') ?: null,
             'amount'       => round((float) $r->input('amount'), 2),
+            'paid_from'    => $r->input('paid_from') === 'bank' ? 'bank' : 'cash',
         ];
     }
 
@@ -83,6 +87,6 @@ class ExpenseController extends Controller
     private function describe(array $e): string
     {
         $cat = !empty($e['category_id']) ? (string) \App\Core\Model::scalar('SELECT name FROM expense_categories WHERE id = ?', [(int) $e['category_id']]) : 'Uncategorised';
-        return money($e['amount']) . ' · ' . $cat . (!empty($e['description']) ? ' · ' . mb_substr((string) $e['description'], 0, 60) : '') . ' · ' . ($e['expense_date'] ?? '');
+        return money($e['amount']) . ' from ' . (($e['paid_from'] ?? 'cash') === 'bank' ? 'bank' : 'cash') . ' · ' . $cat . (!empty($e['description']) ? ' · ' . mb_substr((string) $e['description'], 0, 60) : '') . ' · ' . ($e['expense_date'] ?? '');
     }
 }

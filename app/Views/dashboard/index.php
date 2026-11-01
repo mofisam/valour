@@ -101,13 +101,13 @@ $attentionCount = count($attention['overdue']) + count($attention['waiting']) + 
 
     <section class="card card-pad">
         <h2 class="panel-title flex items-center gap-2"><?= icon('layers', 'h-5 w-5 text-muted') ?> Jobs by status</h2>
-        <p class="text-sm text-muted">Last 30 days</p>
+        <p class="text-sm text-muted"><?= e(date('F Y')) ?> · still to finish</p>
         <?php if (!array_sum(array_map('intval', $i['status_counts']))): ?>
-            <p class="mt-4 text-sm text-muted">No jobs in the last 30 days.</p>
+            <p class="mt-4 text-sm text-muted">Nothing is waiting to be finished this month.</p>
         <?php else: ?>
             <div class="mx-auto mt-3 h-44 max-w-[11rem]"><canvas id="statusChart" data-counts='<?= e(json_encode($i['status_counts'])) ?>'></canvas></div>
             <ul class="mt-4 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted">
-                <?php foreach ($i['status_counts'] as $st => $n): ?><li class="flex justify-between"><span><?= e(JOB_LABELS[$st] ?? $st) ?></span><span class="num font-semibold text-fg"><?= (int) $n ?></span></li><?php endforeach; ?>
+                <?php foreach ($i['status_counts'] as $st => $n): ?><li><a class="flex justify-between hover:text-link" href="<?= url('/jobs?status=' . $st) ?>"><span><?= e(JOB_LABELS[$st] ?? $st) ?></span><span class="num font-semibold text-fg"><?= (int) $n ?></span></a></li><?php endforeach; ?>
             </ul>
         <?php endif; ?>
     </section>

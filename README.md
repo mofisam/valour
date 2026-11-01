@@ -30,6 +30,7 @@ If you imported an earlier version of the schema, run these once, in order:
 2. `database/migrations/003_accounting_and_job_options.sql` (monthly invoice numbers, White/Coloured and Long/Short/Big/Small/Nil job options, direct-cost flag on expense categories)
 3. `database/migrations/004_workflows_pricing_notifications.sql` (per-service process steps, service price list, "needs pricing" flag, notifications)
 4. `database/migrations/005_machine_time.sql` (services charged per hour, "In use" status)
+5. `database/migrations/006_expense_paid_from.sql` (each expense records whether it was paid from cash or the bank)
 
 Fresh installs only need `schema.sql` and the seed file.
 

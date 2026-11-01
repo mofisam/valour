@@ -57,6 +57,30 @@ $methodLabel = fn($m) => $m === 'cash' ? 'Cash' : ($m === 'pos' ? 'POS' : ucfirs
     </div>
 </div>
 
+<!-- Money out (expenses) and the net movement, by where the money sits -->
+<div class="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <div class="card card-pad">
+        <div class="flex items-start justify-between"><div class="text-sm text-muted">Spent from cash</div><?= icon_chip('banknote', 'red') ?></div>
+        <div class="num mt-1 font-display text-xl font-bold"><?= money($s['spent_cash']) ?></div>
+    </div>
+    <div class="card card-pad">
+        <div class="flex items-start justify-between"><div class="text-sm text-muted">Spent from bank</div><?= icon_chip('bank', 'red') ?></div>
+        <div class="num mt-1 font-display text-xl font-bold"><?= money($s['spent_bank']) ?></div>
+    </div>
+    <?php $netCash = $s['cash'] - $s['spent_cash']; $netBank = $s['bank'] - $s['spent_bank']; ?>
+    <div class="card card-pad">
+        <div class="flex items-start justify-between"><div class="text-sm text-muted">Net cash movement</div><?= icon_chip('banknote', $netCash < 0 ? 'red' : 'green') ?></div>
+        <div class="num mt-1 font-display text-xl font-bold <?= $netCash < 0 ? 'text-red-700 dark:text-red-300' : '' ?>"><?= money($netCash) ?></div>
+        <div class="mt-1 text-xs text-muted">Cash received less cash spent</div>
+    </div>
+    <div class="card card-pad">
+        <div class="flex items-start justify-between"><div class="text-sm text-muted">Net bank movement</div><?= icon_chip('bank', $netBank < 0 ? 'red' : 'green') ?></div>
+        <div class="num mt-1 font-display text-xl font-bold <?= $netBank < 0 ? 'text-red-700 dark:text-red-300' : '' ?>"><?= money($netBank) ?></div>
+        <div class="mt-1 text-xs text-muted">Bank received less bank spent</div>
+    </div>
+</div>
+<p class="mt-2 text-xs text-muted">Spending is for the same dates. Pick where each expense was paid from when you record it under Expenses.</p>
+
 <section class="card card-pad mt-6">
     <h2 class="panel-title">Received over time</h2>
     <p class="text-sm text-muted">Cash and bank receipts per <?= count($s['series']['labels']) > 62 ? 'month' : 'day' ?>.</p>

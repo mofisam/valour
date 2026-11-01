@@ -178,6 +178,7 @@ CREATE TABLE expenses (
     category_id   INT UNSIGNED NULL,
     description   TEXT NULL,
     amount        DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+    paid_from     ENUM('cash','bank') NOT NULL DEFAULT 'cash',   -- where the money came out of
     created_by    INT UNSIGNED NULL,
     created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
