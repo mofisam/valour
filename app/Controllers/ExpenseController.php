@@ -17,6 +17,9 @@ class ExpenseController extends Controller
 
     public function index(): void
     {
+        if (!is_admin()) {
+            $this->staffIndex();
+        }
         $filters = [
             'from'        => $this->request->input('from', date('Y-m-01')),
             'to'          => $this->request->input('to', date('Y-m-d')),
@@ -75,7 +78,7 @@ class ExpenseController extends Controller
     {
         $r = $this->request;
         return [
-            'expense_date' => $r->input('expense_date'),
+            'expense_date' => (!is_admin() && (string) $r->input('expense_date') > date('Y-m-d')) ? date('Y-m-d') : $r->input('expense_date'),
             'category_id'  => $r->input('category_id') ?: null,
             'description'  => $r->input('description') ?: null,
             'amount'       => round((float) $r->input('amount'), 2),
@@ -88,5 +91,19 @@ class ExpenseController extends Controller
     {
         $cat = !empty($e['category_id']) ? (string) \App\Core\Model::scalar('SELECT name FROM expense_categories WHERE id = ?', [(int) $e['category_id']]) : 'Uncategorised';
         return money($e['amount']) . ' from ' . (($e['paid_from'] ?? 'cash') === 'bank' ? 'bank' : 'cash') . ' · ' . $cat . (!empty($e['description']) ? ' · ' . mb_substr((string) $e['description'], 0, 60) : '') . ' · ' . ($e['expense_date'] ?? '');
+    }
+
+    /** Staff see a simple "add expense" page with what they recorded themselves this month. No totals, no editing. */
+    private function staffIndex(): never
+    {
+        $filters = ['from' => date('Y-m-01'), 'to' => date('Y-m-d'), 'created_by' => Auth::id()];
+        $pager = new Paginator(Expense::count($filters), (int) $this->request->input('page', 1), 15);
+        $this->view('expenses/staff', [
+            'title'      => 'Expenses',
+            'expenses'   => Expense::paginate($filters, $pager->perPage, $pager->offset),
+            'pager'      => $pager,
+            'categories' => Expense::categories(),
+        ]);
+        exit;
     }
 }

@@ -2,7 +2,7 @@
 /** @var App\Core\Router $router */
 
 use App\Controllers\{AuthController, DashboardController, CustomerController, JobController, InvoiceController,
-    PaymentController, CashController, NotificationController, ExpenseController, ExpenseCategoryController, ActivityController, ReceivablesController, ReminderController, ServiceController, ReportController, UserController, SettingsController};
+    PaymentController, ProcessStepController, CashController, NotificationController, ExpenseController, ExpenseCategoryController, ActivityController, ReceivablesController, ReminderController, ServiceController, ReportController, UserController, SettingsController};
 use App\Controllers\Api\{CustomerSearchController, PricingController, ReminderDueController};
 
 // ---- Public ----
@@ -46,9 +46,9 @@ $router->group(['auth'], function ($r) {
     $r->get('/invoices/{id}/pdf', [InvoiceController::class, 'pdf']);
 
     // Expenses
-    // Expenses (admin only)
-    $r->get('/expenses', [ExpenseController::class, 'index'], ['role:admin']);
-    $r->post('/expenses', [ExpenseController::class, 'store'], ['role:admin']);
+    // Expenses: everyone can record one; only the admin sees all of them and can change or delete
+    $r->get('/expenses', [ExpenseController::class, 'index']);
+    $r->post('/expenses', [ExpenseController::class, 'store']);
     $r->get('/expenses/{id}/edit', [ExpenseController::class, 'edit'], ['role:admin']);
     $r->post('/expenses/{id}', [ExpenseController::class, 'update'], ['role:admin']);
     $r->post('/expenses/{id}/delete', [ExpenseController::class, 'destroy'], ['role:admin']);
@@ -67,6 +67,11 @@ $router->group(['auth'], function ($r) {
 // ---- Admin only ----
 $router->group(['auth', 'role:admin'], function ($r) {
     $r->get('/services', [ServiceController::class, 'index']);
+    $r->get('/process-steps', [ProcessStepController::class, 'index']);
+    $r->post('/process-steps', [ProcessStepController::class, 'save']);
+    $r->post('/process-steps/{id}', [ProcessStepController::class, 'save']);
+    $r->post('/process-steps/{id}/delete', [ProcessStepController::class, 'destroy']);
+
     $r->post('/services/prices', [ServiceController::class, 'savePrices']);
     $r->post('/services', [ServiceController::class, 'saveService']);
     $r->post('/services/{id}', [ServiceController::class, 'saveService']);
@@ -92,6 +97,7 @@ $router->group(['auth', 'role:admin'], function ($r) {
     $r->post('/users/{id}', [UserController::class, 'update']);
 
     $r->post('/settings/business', [SettingsController::class, 'updateBusiness']);
+    $r->post('/settings/clear-activity', [SettingsController::class, 'clearActivity']);
 
     // Notifications (e.g. "job needs a price")
     $r->get('/notifications', [NotificationController::class, 'index'], ['role:admin']);

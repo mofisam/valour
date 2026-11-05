@@ -48,11 +48,31 @@
     if (saved === 'system') applyTheme('system');
   });
 
+  // Small confirmation / error toast (bottom-left)
+  function toast(message, kind) {
+    let host = document.getElementById('ve-toasts');
+    if (!host) {
+      host = document.createElement('div');
+      host.id = 've-toasts';
+      host.className = 'fixed bottom-4 left-4 z-[65] space-y-2';
+      host.setAttribute('aria-live', 'polite');
+      document.body.appendChild(host);
+    }
+    const el = document.createElement('div');
+    el.className = 'rounded-md border px-4 py-2.5 text-sm shadow-lg ' + (kind === 'error'
+      ? 'border-red-300 bg-red-50 text-red-900 dark:border-red-500/40 dark:bg-red-950 dark:text-red-200'
+      : 'border-emerald-300 bg-emerald-50 text-emerald-900 dark:border-emerald-500/40 dark:bg-emerald-950 dark:text-emerald-200');
+    el.textContent = message;
+    host.appendChild(el);
+    setTimeout(() => el.remove(), 3500);
+  }
+
   // Shared helpers
   window.VE = {
     url: (p) => (window.APP_BASE || '') + '/' + String(p).replace(/^\//, ''),
     currency: window.CURRENCY || '₦',
     money: (n) => (window.CURRENCY || '₦') + Number(n || 0).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+    toast,
     debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; },
   };
 })();

@@ -28,6 +28,7 @@ $durM = old('duration_mins', $mins ? $mins % 60 : '');
     <form id="job-form" method="post" action="<?= $action ?>" class="space-y-6"
           data-services='<?= e(json_encode($services)) ?>'
           data-types='<?= e(json_encode($clothingTypes)) ?>'
+          data-step-labels='<?= e(json_encode((object) array_map(fn($st) => $st['label'], job_steps()))) ?>'
           data-prices='<?= e(json_encode((object) $prices)) ?>'
           data-rows='<?= e(json_encode($rows)) ?>'
           data-can-price="<?= is_admin() ? '1' : '0' ?>">

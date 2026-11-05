@@ -11,7 +11,7 @@ $steps = $j['steps'];                                   // this service's own pr
 $pos = array_search($j['status'], $steps, true);
 $next = ($pos !== false && $pos < count($steps) - 1) ? $steps[$pos + 1] : null;
 $overdue = !$isDraft && $j['due_date'] && !in_array($j['status'], ['ready', 'delivered', 'cancelled'], true) && $j['due_date'] < date('Y-m-d');
-$stepLabel = fn($s) => $s === 'pending' ? 'Received' : (JOB_LABELS[$s] ?? ucfirst($s));
+$stepLabel = fn($s) => job_label($s);
 $canEdit = $admin || $isDraft;                          // staff can only edit drafts; submitted jobs are locked
 ?>
 <div class="mb-5 flex flex-wrap items-start justify-between gap-3">

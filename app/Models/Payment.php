@@ -62,9 +62,15 @@ class Payment extends Model
     /** Re-derive amount_paid + payment_status from the payments table. */
     public static function recalc(int $jobId): void
     {
-        $paid  = (float) self::scalar('SELECT COALESCE(SUM(amount),0) FROM payments WHERE job_id = ?', [$jobId]);
-        $total = (float) self::scalar('SELECT total FROM jobs WHERE id = ?', [$jobId]);
-        $status = $paid <= 0 ? 'unpaid' : ($paid + 0.001 >= $total && $total > 0 ? 'paid' : 'partial');
+        $paid = (float) self::scalar('SELECT COALESCE(SUM(amount),0) FROM payments WHERE job_id = ?', [$jobId]);
+        $job  = self::first('SELECT total, subtotal, needs_pricing FROM jobs WHERE id = ?', [$jobId]) ?? ['total' => 0, 'subtotal' => 0, 'needs_pricing' => 0];
+        $total = (float) $job['total'];
+
+        if ($total <= 0.004 && (float) $job['subtotal'] > 0 && !(int) $job['needs_pricing']) {
+            $status = 'paid';   // fully discounted (e.g. 100% off): there is nothing to pay
+        } else {
+            $status = $paid <= 0 ? 'unpaid' : ($paid + 0.001 >= $total && $total > 0 ? 'paid' : 'partial');
+        }
         self::run('UPDATE jobs SET amount_paid = ?, payment_status = ? WHERE id = ?', [$paid, $status, $jobId]);
     }
 }

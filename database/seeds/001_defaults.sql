@@ -4,6 +4,15 @@ INSERT IGNORE INTO roles (id, name, label) VALUES
  (1, 'admin', 'Administrator'),
  (2, 'staff', 'Staff');
 
+INSERT IGNORE INTO process_steps (step_key, label, color, sort_order, is_locked) VALUES
+ ('pending',      'Pending',      'amber',   10, 1),
+ ('in_use',       'In use',       'fuchsia', 20, 0),
+ ('washing',      'Washing',      'sky',     30, 0),
+ ('dry_cleaning', 'Dry cleaning', 'indigo',  40, 0),
+ ('ironing',      'Ironing',      'violet',  50, 0),
+ ('ready',        'Ready',        'teal',    60, 0),
+ ('delivered',    'Delivered',    'emerald', 90, 1);
+
 INSERT IGNORE INTO services (name, pricing_model, price_per_kg, workflow) VALUES
  ('Wash & Iron',  'per_item', 0,    'pending,washing,ironing,ready,delivered'),
  ('Wash Only',    'per_item', 0,    'pending,washing,ready,delivered'),

@@ -1,5 +1,8 @@
 <?php
-$stepLabels = ['in_use' => 'In use', 'washing' => 'Washing', 'dry_cleaning' => 'Dry cleaning', 'ironing' => 'Ironing', 'ready' => 'Ready'];
+// The optional steps come from Process steps, which the admin can add to or remove from
+$stepLabels = array_map(fn($st) => $st['label'], array_filter(job_steps(), fn($st) => !$st['locked']));
+$firstLabel = job_steps()['pending']['label'] ?? 'Pending';
+$lastLabel = job_steps()['delivered']['label'] ?? 'Delivered';
 $perItem = array_values(array_filter($services, fn($s) => $s['pricing_model'] === 'per_item' && $s['is_active']));
 ?>
 <h1 class="mb-1 font-display text-2xl font-bold">Services &amp; prices</h1>
@@ -7,6 +10,7 @@ $perItem = array_values(array_filter($services, fn($s) => $s['pricing_model'] ==
     Staff never type prices: when they submit a job it has no price until you set it, and the price list below fills it in.</p>
 
 <nav class="mb-6 flex flex-wrap gap-2" aria-label="On this page">
+    <a class="tab" href="<?= url('/process-steps') ?>"><?= icon('layers', 'h-4 w-4') ?> Process steps</a>
     <a class="tab" href="#services">Services &amp; process</a>
     <a class="tab" href="#prices">Price list</a>
     <a class="tab" href="#clothing">Clothing types</a>
@@ -14,7 +18,7 @@ $perItem = array_values(array_filter($services, fn($s) => $s['pricing_model'] ==
 
 <section id="services" class="card mb-8 scroll-mt-20">
     <h2 class="panel-title px-5 pt-4">Services &amp; process</h2>
-    <p class="px-5 pb-2 text-sm text-muted">Services can be charged per item, per kg, or per hour for customers who use your machines for as long as they want. Tick the steps this service goes through. <em>Pending</em> and <em>Delivered</em> are always included. For example, ironing only: untick Washing.</p>
+    <p class="px-5 pb-2 text-sm text-muted">Services can be charged per item, per kg, or per hour for customers who use your machines for as long as they want. Tick the steps this service goes through. <em>Pending</em> and <em>Delivered</em> are always included. <a class="text-link underline" href="<?= url('/process-steps') ?>">Add, rename or remove steps</a>. For example, ironing only: untick Washing.</p>
     <div class="table-wrap">
         <table class="table">
             <thead><tr><th>Name</th><th>Charged</th><th>Rate</th><th>Process steps</th><th>Active</th><th></th></tr></thead>
@@ -31,11 +35,11 @@ $perItem = array_values(array_filter($services, fn($s) => $s['pricing_model'] ==
                         <input form="svc-<?= $s['id'] ?>" class="input w-28" type="number" step="0.01" min="0" name="rate" value="<?= e($rate) ?>" aria-label="Rate per kg or per hour" <?= $s['pricing_model'] === 'per_item' ? 'placeholder="n/a"' : '' ?>></td>
                     <td>
                         <div class="flex flex-wrap gap-x-4 gap-y-1 text-sm">
-                            <span class="text-muted">Pending</span>
+                            <span class="text-muted"><?= e($firstLabel) ?></span>
                             <?php foreach ($stepLabels as $k => $l): ?>
                                 <label class="inline-flex items-center gap-1.5"><input form="svc-<?= $s['id'] ?>" type="checkbox" name="steps[]" value="<?= $k ?>" <?= in_array($k, $on, true) ? 'checked' : '' ?>> <?= $l ?></label>
                             <?php endforeach; ?>
-                            <span class="text-muted">Delivered</span>
+                            <span class="text-muted"><?= e($lastLabel) ?></span>
                         </div>
                     </td>
                     <td><input form="svc-<?= $s['id'] ?>" type="checkbox" name="is_active" value="1" <?= $s['is_active'] ? 'checked' : '' ?> aria-label="Active"></td>

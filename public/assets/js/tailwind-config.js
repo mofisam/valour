@@ -4,7 +4,7 @@
   const v = (name) => `rgb(var(--${name}) / <alpha-value>)`;
   const cfg = {
     darkMode: 'class',
-    content: ['./app/Views/**/*.php', './public/assets/js/**/*.js'],
+    content: ['./app/Views/**/*.php', './app/Helpers/**/*.php', './public/assets/js/**/*.js'],
     theme: {
       extend: {
         colors: {

@@ -31,6 +31,7 @@ If you imported an earlier version of the schema, run these once, in order:
 3. `database/migrations/004_workflows_pricing_notifications.sql` (per-service process steps, service price list, "needs pricing" flag, notifications)
 4. `database/migrations/005_machine_time.sql` (services charged per hour, "In use" status)
 5. `database/migrations/006_expense_paid_from.sql` (each expense records whether it was paid from cash or the bank)
+6. `database/migrations/007_custom_steps_and_free_jobs.sql` (admin-managed process steps, fully discounted jobs count as paid)
 
 Fresh installs only need `schema.sql` and the seed file.
 
@@ -101,11 +102,16 @@ Invoice numbers look like `VE-26-10-001` (prefix, year, month, running number; t
 
 ## Roles
 
-- **Staff**: Dashboard (no financial figures), Jobs and Settings only. They pick an existing customer in the job form, but cannot open the Customers or Expenses pages.
+- **Staff**: Dashboard (no financial figures), Jobs, Expenses and Settings. They pick an existing customer in the job form but cannot open the Customers page. On Expenses they can record a new expense and see their own entries for the month; only the admin can see all expenses, edit or delete them.
   - Staff create jobs with **no price**. A job they submit is flagged "Awaiting price" and every admin gets a notification.
   - A submitted job is locked for staff: they can only **update its status**. They can edit a job while it is still a draft.
   - Staff cannot record or edit payments, set prices or discounts, add customers or cancel jobs.
 - **Administrator**: everything, plus customers, expenses, pricing jobs, payments, reports, receivables, activity log, reminders, notifications, services & prices, expense categories, staff accounts and business settings.
+
+## Process steps
+
+Admin → **Services & prices → Process steps**: add your own steps (Folding, Packaging…), rename or recolour them, change their order, or remove them.
+A step can only be removed when no job is currently at it. Each service then ticks the steps it uses. On the Jobs list and the dashboard, click a job's status badge to change it from a drop-down.
 
 ## Services: process and prices
 

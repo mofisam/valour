@@ -65,4 +65,13 @@ class ActivityLog extends Model
     {
         return array_column(self::all("SELECT DISTINCT SUBSTRING_INDEX(action, '.', 1) AS e FROM activity_logs WHERE action LIKE '%.%' ORDER BY e"), 'e');
     }
+
+    /** Delete entries older than N days (null = everything). Returns how many were removed. */
+    public static function clear(?int $olderThanDays): int
+    {
+        if ($olderThanDays === null) {
+            return self::run('DELETE FROM activity_logs');
+        }
+        return self::run('DELETE FROM activity_logs WHERE created_at < DATE_SUB(NOW(), INTERVAL ? DAY)', [$olderThanDays]);
+    }
 }

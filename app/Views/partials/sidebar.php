@@ -1,13 +1,13 @@
 <?php
-// Staff only see Dashboard and Jobs. Customers and Expenses belong to the admin.
+// Staff see Dashboard, Jobs and Expenses (add-only). Customers belong to the admin.
 $items = [
     ['/',           'Dashboard',  'M3 12l9-9 9 9M5 10v10h5v-6h4v6h5V10'],
     ['/jobs',       'Jobs',       'M9 5h6M9 9h6M9 13h4M6 3h12a1 1 0 011 1v16a1 1 0 01-1 1H6a1 1 0 01-1-1V4a1 1 0 011-1z'],
 ];
 if (is_admin()) {
     $items[] = ['/customers', 'Customers', 'M16 11a4 4 0 10-8 0 4 4 0 008 0zM4 21c0-4 4-6 8-6s8 2 8 6'];
-    $items[] = ['/expenses',  'Expenses',  'M12 3v18M17 7H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6'];
 }
+$items[] = ['/expenses', 'Expenses', 'M12 3v18M17 7H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6'];   // staff can record expenses too
 $adminItems = [
     ['/notifications','Notifications','M3 8l9 6 9-6M5 5h14a2 1 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2z'],
     ['/reminders','Reminders',        'M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9zM13.7 21a2 2 0 01-3.4 0'],

@@ -1,6 +1,7 @@
 <?php
 \App\Core\View::script('https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js');
 \App\Core\View::script('charts.js');
+\App\Core\View::script('status-menu.js');
 $admin = is_admin();
 $i = $insights;
 $monthStart = date('Y-m-01');
@@ -105,9 +106,9 @@ $attentionCount = count($attention['overdue']) + count($attention['waiting']) + 
         <?php if (!array_sum(array_map('intval', $i['status_counts']))): ?>
             <p class="mt-4 text-sm text-muted">Nothing is waiting to be finished this month.</p>
         <?php else: ?>
-            <div class="mx-auto mt-3 h-44 max-w-[11rem]"><canvas id="statusChart" data-counts='<?= e(json_encode($i['status_counts'])) ?>'></canvas></div>
+            <div class="mx-auto mt-3 h-44 max-w-[11rem]"><canvas id="statusChart" data-counts='<?= e(json_encode($i['status_counts'])) ?>' data-meta='<?= e(json_encode((object) array_map(fn($st) => ['label' => $st['label'], 'color' => STEP_HEX[$st['color']] ?? '#7A8B99'], job_steps()))) ?>'></canvas></div>
             <ul class="mt-4 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted">
-                <?php foreach ($i['status_counts'] as $st => $n): ?><li><a class="flex justify-between hover:text-link" href="<?= url('/jobs?status=' . $st) ?>"><span><?= e(JOB_LABELS[$st] ?? $st) ?></span><span class="num font-semibold text-fg"><?= (int) $n ?></span></a></li><?php endforeach; ?>
+                <?php foreach ($i['status_counts'] as $st => $n): ?><li><a class="flex justify-between hover:text-link" href="<?= url('/jobs?status=' . $st) ?>"><span><?= e(job_label($st)) ?></span><span class="num font-semibold text-fg"><?= (int) $n ?></span></a></li><?php endforeach; ?>
             </ul>
         <?php endif; ?>
     </section>
@@ -204,7 +205,7 @@ $attentionCount = count($attention['overdue']) + count($attention['waiting']) + 
                     <tr>
                         <td><a class="font-medium text-link hover:underline" href="<?= url('/jobs/' . $j['id']) ?>"><?= e($j['invoice_number'] ?: 'Draft #' . $j['id']) ?></a><div class="text-xs text-muted"><?= e(fdate($j['job_date'])) ?></div></td>
                         <td><?= e($j['customer_name'] ?? '—') ?></td>
-                        <td><?= $j['is_draft'] ? status_badge('draft') : status_badge($j['status']) ?></td>
+                        <td><?= status_menu($j) ?></td>
                         <?php if ($admin): ?><td><?= status_badge($j['payment_status']) ?></td><?php endif; ?>
                         <td class="num text-right"><?= $j['needs_pricing'] && !$j['is_draft'] ? '<span class="badge badge-pending">Awaiting price</span>' : money($j['total']) ?></td>
                     </tr>

@@ -20,6 +20,7 @@ class Expense extends Model
         if (!empty($f['from'])) { $sql .= ' AND e.expense_date >= ?'; $p[] = $f['from']; }
         if (!empty($f['to']))   { $sql .= ' AND e.expense_date <= ?'; $p[] = $f['to']; }
         if (!empty($f['category_id'])) { $sql .= ' AND e.category_id = ?'; $p[] = (int) $f['category_id']; }
+        if (!empty($f['created_by'])) { $sql .= ' AND e.created_by = ?'; $p[] = (int) $f['created_by']; }
         if (!empty($f['paid_from']) && in_array($f['paid_from'], ['cash', 'bank'], true)) { $sql .= ' AND e.paid_from = ?'; $p[] = $f['paid_from']; }
         return $sql;
     }

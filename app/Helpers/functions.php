@@ -222,10 +222,76 @@ function brand_initial(): string
     return mb_strtoupper(mb_substr(trim(company_name()), 0, 1)) ?: 'L';
 }
 
+/**
+ * Process steps in order: [key => ['label' => .., 'color' => .., 'locked' => bool]].
+ * Managed by the admin; falls back to the standard set if the table does not exist yet.
+ */
+function job_steps(): array
+{
+    static $steps = null;
+    if ($steps === null) {
+        $steps = [];
+        try {
+            foreach (\App\Models\ProcessStep::ordered() as $r) {
+                $steps[$r['step_key']] = ['label' => $r['label'], 'color' => $r['color'], 'locked' => (bool) $r['is_locked'], 'id' => (int) $r['id'], 'sort' => (int) $r['sort_order']];
+            }
+        } catch (\Throwable) {
+            $steps = [];
+        }
+        if (!$steps) {
+            foreach ([['pending', 'Pending', 'amber', 1], ['washing', 'Washing', 'sky', 0], ['ironing', 'Ironing', 'violet', 0], ['ready', 'Ready', 'teal', 0], ['delivered', 'Delivered', 'emerald', 1]] as $n => [$k, $l, $c, $lock]) {
+                $steps[$k] = ['label' => $l, 'color' => $c, 'locked' => (bool) $lock, 'id' => 0, 'sort' => ($n + 1) * 10];
+            }
+        }
+    }
+    return $steps;
+}
+
+/** Every value a job's status can hold: the steps plus the built-in 'cancelled'. */
+function job_statuses(): array
+{
+    return array_merge(array_keys(job_steps()), ['cancelled']);
+}
+
+function job_label(string $status): string
+{
+    if ($status === 'cancelled') {
+        return 'Cancelled';
+    }
+    return job_steps()[$status]['label'] ?? ucfirst(str_replace('_', ' ', $status));
+}
+
+/**
+ * A status badge that opens a drop-down so the status can be changed in place (jobs list, dashboard).
+ * Falls back to a plain badge for drafts, or when the person cannot change statuses.
+ */
+function status_menu(array $job): string
+{
+    if (!empty($job['is_draft'])) {
+        return status_badge('draft');
+    }
+    $steps = \App\Models\Service::workflowOf(['workflow' => $job['service_workflow'] ?? null]);
+    if (!in_array($job['status'], $steps, true) && $job['status'] !== 'cancelled') {
+        $steps[] = $job['status'];     // a status from an older process: still show it so nothing looks broken
+    }
+    $options = array_map(fn($k) => ['key' => $k, 'label' => job_label($k)], $steps);
+    if (is_admin()) {
+        $options[] = ['key' => 'cancelled', 'label' => 'Cancelled'];
+    }
+    return '<button type="button" class="group inline-flex items-center gap-1 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-sea" data-status-menu data-job="' . (int) $job['id'] . '" data-status="' . e($job['status']) . '" data-options="' . e(json_encode($options)) . '" aria-haspopup="menu" title="Change status">'
+        . '<span data-badge>' . status_badge($job['status']) . '</span>'
+        . '<svg class="h-3.5 w-3.5 text-muted group-hover:text-fg" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>';
+}
+
 function status_badge(string $status): string
 {
-    $label = ucfirst(str_replace('_', ' ', $status));
-    return '<span class="badge badge-' . e($status) . '">' . e($label) . '</span>';
+    // Payment states, drafts and cancelled keep their fixed colours...
+    if (in_array($status, ['unpaid', 'partial', 'paid', 'draft', 'cancelled'], true)) {
+        return '<span class="badge badge-' . e($status) . '">' . e(ucfirst($status)) . '</span>';
+    }
+    // ...process steps use the colour the admin picked
+    $color = job_steps()[$status]['color'] ?? 'slate';
+    return '<span class="badge ' . (STEP_COLORS[$color] ?? STEP_COLORS['slate']) . '">' . e(job_label($status)) . '</span>';
 }
 
 function abort(int $code = 404, string $message = ''): never

@@ -20,20 +20,31 @@ class Service extends Model
     }
 
     /**
-     * Ordered list of statuses a job of this service moves through.
-     * Always starts with 'pending' and ends with 'delivered'; the steps in between are what the admin switched on.
+     * Ordered list of statuses a job of this service moves through (the admin's process steps that apply).
+     * Locked steps (Pending, Delivered) are always included.
      */
     public static function workflowOf(?array $service): array
     {
         $raw = $service['workflow'] ?? 'pending,washing,ready,delivered';
         $chosen = array_filter(array_map('trim', explode(',', (string) $raw)));
-        return array_values(array_filter(JOB_FLOW, fn($s) => $s === 'pending' || $s === 'delivered' || in_array($s, $chosen, true)));
+        $out = [];
+        foreach (job_steps() as $key => $step) {
+            if ($step['locked'] || in_array($key, $chosen, true)) {
+                $out[] = $key;
+            }
+        }
+        return $out;
     }
 
-    /** Turn posted checkbox values into the stored comma list. */
+    /** Turn posted checkbox values into the stored comma list, in process order. */
     public static function workflowFromSteps(array $steps): string
     {
-        $steps = array_values(array_intersect(OPTIONAL_STEPS, $steps));
-        return implode(',', array_values(array_filter(JOB_FLOW, fn($s) => $s === 'pending' || $s === 'delivered' || in_array($s, $steps, true))));
+        $out = [];
+        foreach (job_steps() as $key => $step) {
+            if ($step['locked'] || in_array($key, $steps, true)) {
+                $out[] = $key;
+            }
+        }
+        return implode(',', $out);
     }
 }

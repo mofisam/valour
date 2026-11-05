@@ -2,17 +2,11 @@
 /** @var array $job @var array $biz */
 $forPdf = $forPdf ?? false;
 $ink = '#11293B'; $accent = '#1F6F78';
-$isPaid = (float) $job['total'] > 0 && (float) $job['total'] - (float) $job['amount_paid'] < 0.005;
+$isPaid = ($job['payment_status'] ?? '') === 'paid' || ((float) $job['total'] > 0 && (float) $job['total'] - (float) $job['amount_paid'] < 0.005);
 require APP_PATH . '/Views/invoices/_styles.php';
 ?>
 <style>.doc.modern { padding: 0; } .doc.modern .d-inner { padding: 26px 38px 34px; }</style>
-<?php if (!$forPdf): ?>
-<div class="noprint">
-  <a href="<?= url('/jobs/' . $job['id']) ?>">Back to job</a>
-  <a href="<?= url('/invoices/' . $job['id'] . '/pdf') ?>">Download PDF</a>
-  <button onclick="window.print()">Print</button>
-</div>
-<?php endif; ?>
+<?php if (!$forPdf) { require APP_PATH . '/Views/invoices/_toolbar.php'; } ?>
 <div class="doc modern">
   <table style="background:#11293B;color:#fff"><tr>
     <td style="padding:24px 38px;vertical-align:top">

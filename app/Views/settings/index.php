@@ -2,7 +2,7 @@
 $me = auth();
 $S = fn($k, $d = '') => e(old($k, $settings[$k] ?? $d));
 $nav = [['profile', 'Your profile'], ['password', 'Password']];
-if (is_admin()) { $nav = array_merge($nav, [['business', 'Business details'], ['invoice', 'Invoices & payments']]); }
+if (is_admin()) { $nav = array_merge($nav, [['business', 'Business details'], ['invoice', 'Invoices & payments'], ['activity', 'Activity log']]); }
 ?>
 <h1 class="mb-6 font-display text-2xl font-bold">Settings</h1>
 
@@ -93,6 +93,27 @@ if (is_admin()) { $nav = array_merge($nav, [['business', 'Business details'], ['
             <div><button class="btn-primary" type="submit">Save business settings</button></div>
         </form>
 
+
+        <section id="activity" class="card card-pad scroll-mt-20">
+            <h2 class="panel-title flex items-center gap-2"><?= icon('activity', 'h-5 w-5 text-muted') ?> Activity log</h2>
+            <p class="text-sm text-muted">The activity log records who did what. <a class="text-link underline" href="<?= url('/activity') ?>">Open the log</a>. Clearing it cannot be undone, and one line recording the clean-up is kept.</p>
+            <form method="post" action="<?= url('/settings/clear-activity') ?>" class="mt-4 flex flex-wrap items-end gap-3"
+                  data-confirm="Clear these activity-log entries? This cannot be undone.">
+                <?= csrf_field() ?>
+                <div>
+                    <label class="label" for="range">Clear</label>
+                    <select class="input" id="range" name="range" required>
+                        <option value="">Choose…</option>
+                        <option value="365">Entries older than 1 year</option>
+                        <option value="180">Entries older than 6 months</option>
+                        <option value="90">Entries older than 3 months</option>
+                        <option value="30">Entries older than 30 days</option>
+                        <option value="all">Everything</option>
+                    </select>
+                </div>
+                <button class="btn-danger" type="submit">Clear activity log</button>
+            </form>
+        </section>
         <?php endif; ?>
     </div>
 </div>

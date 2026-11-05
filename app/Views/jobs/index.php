@@ -4,9 +4,9 @@ $admin = is_admin();
 
 // Tabs: All, each process status that is in use, then Needs price / Unpaid (admin) and Drafts
 $tabs = [['', 'All', $counts['all'], fn() => $view === '' && empty($f['status'])]];
-foreach (JOB_FLOW as $st) {
-    if ($counts[$st] > 0 || in_array($st, ['pending', 'ready', 'delivered'], true) || ($f['status'] ?? '') === $st) {
-        $tabs[] = [$st, JOB_LABELS[$st], $counts[$st], fn() => ($f['status'] ?? '') === $st];
+foreach (job_steps() as $st => $step) {
+    if (($counts[$st] ?? 0) > 0 || $step['locked'] || ($f['status'] ?? '') === $st) {
+        $tabs[] = [$st, $step['label'], $counts[$st] ?? 0, fn() => ($f['status'] ?? '') === $st];
     }
 }
 if ($admin) {
@@ -27,13 +27,14 @@ $tabs[] = ['drafts', 'Drafts', $counts['drafts'], fn() => $view === 'drafts'];
     <?php endforeach; ?>
 </nav>
 
+<?php \App\Core\View::script('status-menu.js'); ?>
 <div class="card">
     <form method="get" class="grid gap-3 border-b border-line p-4 sm:grid-cols-2 <?= $admin ? 'lg:grid-cols-6' : 'lg:grid-cols-5' ?>">
         <?php if ($view !== ''): ?><input type="hidden" name="view" value="<?= e($view) ?>"><?php endif; ?>
         <input class="input lg:col-span-2" type="search" name="q" value="<?= e($f['q'] ?? '') ?>" placeholder="Invoice, customer or phone" aria-label="Search jobs">
         <select class="input" name="status" aria-label="Status">
             <option value="">Any status</option>
-            <?php foreach (JOB_STATUSES as $s): ?><option value="<?= $s ?>" <?= ($f['status'] ?? '') === $s ? 'selected' : '' ?>><?= e(JOB_LABELS[$s]) ?></option><?php endforeach; ?>
+            <?php foreach (job_statuses() as $s): ?><option value="<?= e($s) ?>" <?= ($f['status'] ?? '') === $s ? 'selected' : '' ?>><?= e(job_label($s)) ?></option><?php endforeach; ?>
         </select>
         <?php if ($admin): ?>
         <select class="input" name="payment_status" aria-label="Payment">
@@ -58,7 +59,7 @@ $tabs[] = ['drafts', 'Drafts', $counts['drafts'], fn() => $view === 'drafts'];
                     <td><?= e($j['customer_name'] ?? '—') ?><?php if ($admin): ?><div class="text-xs text-muted"><?= e($j['phone_number'] ?? '') ?></div><?php endif; ?></td>
                     <td><?= e($j['service_name'] ?? '—') ?></td>
                     <td><?= e(fdate($j['job_date'])) ?></td>
-                    <td><?= $j['is_draft'] ? status_badge('draft') : status_badge($j['status']) ?></td>
+                    <td><?= status_menu($j) ?></td>
                     <?php if ($admin): ?><td><?= status_badge($j['payment_status']) ?></td><?php endif; ?>
                     <td class="num text-right"><?= $j['needs_pricing'] && !$j['is_draft'] ? '<span class="badge badge-pending">Awaiting price</span>' : money($j['total']) ?></td>
                     <?php if ($admin): ?><td class="num text-right"><?= $j['needs_pricing'] ? '—' : money(max(0, $j['total'] - $j['amount_paid'])) ?></td><?php endif; ?>

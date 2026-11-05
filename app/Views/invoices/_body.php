@@ -10,7 +10,8 @@ $byValue = $perHour || $perKg;
 $total   = (float) $job['total'];
 $paid    = (float) $job['amount_paid'];
 $balance = max(0.0, $total - $paid);
-$isPaid  = $balance < 0.005 && $total > 0;
+$free    = $total <= 0.004 && (float) $job['discount_amount'] > 0;      // fully discounted: nothing to pay
+$isPaid  = $free || ($job['payment_status'] ?? '') === 'paid' || ($balance < 0.005 && $total > 0);
 $isPart  = !$isPaid && $paid > 0.004;
 $dur     = (int) ($job['duration_minutes'] ?? 0);
 $durText = trim(($dur >= 60 ? intdiv($dur, 60) . ' h ' : '') . ($dur % 60 ? $dur % 60 . ' min' : ''));
@@ -19,7 +20,7 @@ $lastPay = $job['payments'] ? end($job['payments'])['paid_at'] : null;
 <?php if ($isPaid): ?>
 <table class="d-status d-paid"><tr>
     <td class="d-status-label">PAID IN FULL</td>
-    <td class="d-status-text">Thank you. <?= money($paid) ?> received<?= $lastPay ? ' on ' . e(fdate($lastPay)) : '' ?>. Nothing more is due.</td>
+    <td class="d-status-text"><?php if ($free && $paid < 0.005): ?>No payment needed. This job was fully discounted.<?php else: ?>Thank you. <?= money($paid) ?> received<?= $lastPay ? ' on ' . e(fdate($lastPay)) : '' ?>. Nothing more is due.<?php endif; ?></td>
 </tr></table>
 <?php elseif ($isPart): ?>
 <table class="d-status d-part"><tr>
@@ -48,7 +49,7 @@ $lastPay = $job['payments'] ? end($job['payments'])['paid_at'] : null;
                 <tr><td>Service</td><td class="d-strong"><?= e($job['service_name'] ?? '—') ?></td></tr>
                 <tr><td>Dropped off</td><td><?= e(fdate($job['job_date'])) ?></td></tr>
                 <?php if ($job['due_date']): ?><tr><td>Ready by</td><td><?= e(fdate($job['due_date'])) ?></td></tr><?php endif; ?>
-                <tr><td>Status</td><td><?= e(JOB_LABELS[$job['status']] ?? ucfirst($job['status'])) ?></td></tr>
+                <tr><td>Status</td><td><?= e(job_label($job['status'])) ?></td></tr>
                 <?php if (!empty($job['created_by_name'])): ?><tr><td>Served by</td><td><?= e($job['created_by_name']) ?></td></tr><?php endif; ?>
             </table>
         </td>

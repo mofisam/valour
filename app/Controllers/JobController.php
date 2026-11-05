@@ -85,18 +85,31 @@ class JobController extends Controller
         if (is_admin()) {
             $allowed[] = 'cancelled';
         }
+        // A status left over from an older process may still be the job's current one: keep it selectable
         if (!in_array($status, $allowed, true)) {
-            $this->flash('error', 'That status is not part of this service\'s process.');
-            $this->redirect("/jobs/$id");
+            $this->statusFail((int) $id, "That status is not part of this service's process.");
         }
         if ($job['is_draft']) {
-            $this->flash('error', 'Submit the draft before changing its status.');
-            $this->redirect("/jobs/$id");
+            $this->statusFail((int) $id, 'Submit the draft before changing its status.');
         }
         Job::setStatus((int) $id, $status);
-        ActivityLog::log('job.status', 'job', (int) $id, ($job['invoice_number'] ?: 'Job #' . $id) . ': ' . (JOB_LABELS[$job['status']] ?? $job['status']) . ' → ' . (JOB_LABELS[$status] ?? $status));
-        $this->flash('success', 'Status updated to ' . strtolower(JOB_LABELS[$status] ?? $status) . '.');
+        ActivityLog::log('job.status', 'job', (int) $id, ($job['invoice_number'] ?: 'Job #' . $id) . ': ' . job_label($job['status']) . ' → ' . job_label($status));
+
+        if ($this->request->isAjax()) {
+            $this->json(['ok' => true, 'status' => $status, 'label' => job_label($status), 'badge' => status_badge($status),
+                         'message' => ($job['invoice_number'] ?: 'Job #' . $id) . ' is now ' . strtolower(job_label($status)) . '.']);
+        }
+        $this->flash('success', 'Status updated to ' . strtolower(job_label($status)) . '.');
         back("/jobs/$id");
+    }
+
+    private function statusFail(int $id, string $message): never
+    {
+        if ($this->request->isAjax()) {
+            $this->json(['ok' => false, 'message' => $message], 422);
+        }
+        $this->flash('error', $message);
+        $this->redirect("/jobs/$id");
     }
 
     /** Submit a draft: gives it an invoice number and, if it has no price yet, tells the admin. */

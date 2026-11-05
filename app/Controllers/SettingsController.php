@@ -94,4 +94,19 @@ class SettingsController extends Controller
         $this->flash('success', 'Business settings saved.');
         $this->redirect('/settings');
     }
+
+    /** Admin: remove old (or all) activity-log entries. One entry is written afterwards so the clean-up itself is on record. */
+    public function clearActivity(): void
+    {
+        $range = (string) $this->request->input('range', '');
+        $days = ['30' => 30, '90' => 90, '180' => 180, '365' => 365][$range] ?? null;
+        if ($range !== 'all' && $days === null) {
+            $this->flash('error', 'Choose how much of the activity log to clear.');
+            $this->redirect('/settings#activity');
+        }
+        $removed = ActivityLog::clear($range === 'all' ? null : $days);
+        ActivityLog::log('activity.cleared', 'settings', null, "$removed entr" . ($removed === 1 ? 'y' : 'ies') . ' removed (' . ($range === 'all' ? 'everything' : "older than $days days") . ')');
+        $this->flash('success', $removed . ' activity-log entr' . ($removed === 1 ? 'y' : 'ies') . ' cleared.');
+        $this->redirect('/settings#activity');
+    }
 }

@@ -22,7 +22,7 @@ class Job extends Model
             $like = '%' . $f['q'] . '%';
             array_push($p, $like, $like, $like);
         }
-        if (!empty($f['status']) && in_array($f['status'], JOB_STATUSES, true)) {
+        if (!empty($f['status']) && in_array($f['status'], job_statuses(), true)) {
             $sql .= ' AND j.status = ?';
             $p[] = $f['status'];
         }
@@ -58,7 +58,7 @@ class Job extends Model
     public static function tabCounts(): array
     {
         $rows = self::all('SELECT status, COUNT(*) c FROM jobs WHERE deleted_at IS NULL AND is_draft = 0 GROUP BY status');
-        $out = array_fill_keys(JOB_STATUSES, 0) + ['all' => 0];
+        $out = array_fill_keys(job_statuses(), 0) + ['all' => 0];
         foreach ($rows as $r) {
             $out[$r['status']] = (int) $r['c'];
             $out['all'] += (int) $r['c'];
@@ -81,7 +81,7 @@ class Job extends Model
         $p = [];
         $where = self::where($filters, $p);
         return self::all(
-            'SELECT j.*, c.full_name AS customer_name, c.phone_number, s.name AS service_name' . self::FROM . $where .
+            'SELECT j.*, c.full_name AS customer_name, c.phone_number, s.name AS service_name, s.workflow AS service_workflow' . self::FROM . $where .
             ' ORDER BY j.job_date DESC, j.id DESC LIMIT ' . (int) $limit . ' OFFSET ' . (int) $offset,
             $p
         );

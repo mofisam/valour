@@ -114,7 +114,7 @@ class ReportService extends Model
             [$monthStart]
         ), 'c', 'status');
         $out = [];
-        foreach (JOB_FLOW as $st) {
+        foreach (array_keys(job_steps()) as $st) {
             if ($st !== 'delivered' && isset($rows[$st])) {
                 $out[$st] = (int) $rows[$st];
             }
@@ -139,7 +139,8 @@ class ReportService extends Model
     public static function recentJobs(int $limit = 8): array
     {
         return self::all(
-            'SELECT j.*, c.full_name AS customer_name FROM jobs j LEFT JOIN customers c ON c.id = j.customer_id
+            'SELECT j.*, c.full_name AS customer_name, s.workflow AS service_workflow FROM jobs j LEFT JOIN customers c ON c.id = j.customer_id
+             LEFT JOIN services s ON s.id = j.service_id
              WHERE j.deleted_at IS NULL ORDER BY j.id DESC LIMIT ' . (int) $limit
         );
     }

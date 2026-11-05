@@ -76,6 +76,17 @@ CREATE TABLE clothing_types (
     updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
+-- 4a. Process steps a job can pass through (the admin adds, renames, reorders and removes these)
+CREATE TABLE process_steps (
+    id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    step_key    VARCHAR(40) NOT NULL UNIQUE,            -- stored on jobs.status, never changes
+    label       VARCHAR(60) NOT NULL,                   -- what people see; the admin can rename it
+    color       VARCHAR(20) NOT NULL DEFAULT 'sky',
+    sort_order  INT NOT NULL DEFAULT 50,
+    is_locked   TINYINT(1) NOT NULL DEFAULT 0,          -- Pending and Delivered are part of every service
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
 -- 4b. Price list: price of each clothing type PER SERVICE (the main source of job prices)
 CREATE TABLE service_prices (
     service_id        INT UNSIGNED NOT NULL,
@@ -100,7 +111,7 @@ CREATE TABLE jobs (
     invoice_number   VARCHAR(50) NULL UNIQUE,              -- NULL while draft
     customer_id      INT UNSIGNED NULL,
     service_id       INT UNSIGNED NULL,
-    status           ENUM('pending','in_use','washing','dry_cleaning','ironing','ready','delivered','cancelled') NOT NULL DEFAULT 'pending',
+    status           VARCHAR(40) NOT NULL DEFAULT 'pending',   -- a process_steps.step_key, or 'cancelled'
     needs_pricing    TINYINT(1) NOT NULL DEFAULT 0,        -- 1 = created by staff, waiting for the admin to set the price
     payment_status   ENUM('unpaid','partial','paid') NOT NULL DEFAULT 'unpaid',
     is_draft         TINYINT(1) NOT NULL DEFAULT 0,

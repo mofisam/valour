@@ -13,7 +13,7 @@
   const itemsBox = document.getElementById('items-box');
   const canPrice = form.dataset.canPrice === '1';
   const prices = JSON.parse(form.dataset.prices || '{}');
-  const labels = { pending: 'Received', in_use: 'In use', washing: 'Washing', dry_cleaning: 'Dry cleaning', ironing: 'Ironing', ready: 'Ready', delivered: 'Delivered' };
+  const labels = JSON.parse(form.dataset.stepLabels || '{}');
   const hint = document.getElementById('process-hint');
   const kgInput = document.getElementById('total_kg');
   const kgPrice = document.getElementById('price_per_kg');

@@ -47,11 +47,11 @@
     const st = document.getElementById('statusChart');
     if (st) {
       const counts = JSON.parse(st.dataset.counts);
-      const order = [['pending', '#D9A441'], ['in_use', '#B45FC9'], ['washing', '#4A90C2'], ['dry_cleaning', '#6C7BD6'], ['ironing', '#8E6CC9'], ['ready', '#1F9AA6'], ['delivered', '#3FA06B'], ['cancelled', '#C75050']];
-      const rows = order.filter(([k]) => Number(counts[k]) > 0);
+      const meta = JSON.parse(st.dataset.meta || '{}');
+      const rows = Object.keys(counts).filter((k) => Number(counts[k]) > 0).map((k) => [k, (meta[k] || {}).color || '#7A8B99']);
       charts.push(new Chart(st, {
         type: 'doughnut',
-        data: { labels: rows.map(([k]) => (k[0].toUpperCase() + k.slice(1)).replace('_', ' ')), datasets: [{ data: rows.map(([k]) => Number(counts[k])), backgroundColor: rows.map(([, c]) => c), borderWidth: 0 }] },
+        data: { labels: rows.map(([k]) => (meta[k] || {}).label || k), datasets: [{ data: rows.map(([k]) => Number(counts[k])), backgroundColor: rows.map(([, c]) => c), borderWidth: 0 }] },
         options: { responsive: true, maintainAspectRatio: false, cutout: '62%', plugins: { legend: { display: false } } },
       }));
     }
